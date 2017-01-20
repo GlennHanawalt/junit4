@@ -219,15 +219,28 @@ public class Description implements Serializable {
      * @return the total number of atomic tests in the receiver
      */
     public int testCount() {
+        return this.testCount(new ArrayList<Description>());
+    }
+    
+    private int testCount(ArrayList<Description> seen) {
         if (isTest()) {
             return 1;
         }
+        
+        for (Description d : seen) {
+            if (this == d) {
+                return 0;
+            }
+        }
+        
+        seen.add(this);
         int result = 0;
         for (Description child : fChildren) {
-            result += child.testCount();
+            result += child.testCount(seen);
         }
         return result;
     }
+
 
     @Override
     public int hashCode() {
