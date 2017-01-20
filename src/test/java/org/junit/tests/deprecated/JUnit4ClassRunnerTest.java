@@ -5,10 +5,15 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
+import org.junit.internal.runners.InitializationError;
 import org.junit.internal.runners.JUnit4ClassRunner;
+import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.RunWith;
+import org.junit.runner.manipulation.Filter;
+import org.junit.runner.manipulation.NoTestsRemainException;
+import org.junit.runner.manipulation.Sorter;
 
 /**
  * @deprecated This is a simple smoke test to make sure the old JUnit4ClassRunner basically works.
@@ -60,5 +65,33 @@ public class JUnit4ClassRunnerTest {
         Result result = JUnitCore.runClasses(UnconstructableExample.class);
         assertThat(result.getRunCount(), is(2));
         assertThat(result.getFailureCount(), is(2));
+    }
+
+    @Test
+    public void filterMethodsRemaining() throws InitializationError {
+        JUnit4ClassRunner runner = new JUnit4ClassRunner(Example.class);
+        try {
+            runner.filter(Filter.ALL);
+        } catch (NoTestsRemainException e) {
+            fail();
+        }
+    } 
+
+    @Test(expected=NoTestsRemainException.class)
+    public void filterNoMethodsRemaining () throws InitializationError, NoTestsRemainException {
+        JUnit4ClassRunner runner = new JUnit4ClassRunner(Example.class);
+        runner.filter(new Filter() {
+            @Override
+            public boolean shouldRun(Description description) { return false; }
+
+            @Override
+            public String describe() { return ""; }
+        });
+    }
+
+    @Test
+    public void sortDoesNotFail() throws InitializationError {
+        JUnit4ClassRunner runner = new JUnit4ClassRunner(Example.class);
+        runner.sort(Sorter.NULL);
     }
 }
